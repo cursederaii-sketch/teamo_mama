@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feliz día, mamá</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+:root{--rosa-suave:#fff1f5;--rosa:#fbd5e0;--rosa-fuerte:#f2a2bc;--rosa-texto:#cf5f86;--tinta:#4a2a36}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  min-height:100svh;overflow-x:hidden;color:var(--tinta);
+  font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:1.45rem;line-height:1.55;
+  background:
+    radial-gradient(60% 45% at 8% 0%,var(--rosa) 0%,transparent 70%),
+    radial-gradient(55% 40% at 100% 8%,#ffe6ee 0%,transparent 70%),
+    radial-gradient(70% 40% at 50% 100%,var(--rosa-suave) 0%,transparent 80%),
+    #fff;
+  display:grid;place-items:center;padding:6rem 1.5rem 38vh;
+}
+main{position:relative;z-index:2;max-width:30rem;text-align:center}
+.sup{font-style:italic;font-size:1.6rem;color:var(--muted,#8f6a79);margin:0}
+h1{margin:-.5rem 0 1.2rem;font-family:'Pinyon Script',cursive;font-weight:400;font-size:clamp(5.5rem,26vw,10rem);line-height:1.05;color:var(--rosa-texto)}
+p{margin:0 0 1rem}
+.te-amo{font-style:italic;font-size:1.7rem;margin-top:1.6rem;color:var(--rosa-texto)}
+.rot{min-height:12rem;opacity:0;transition:opacity 1.2s ease;margin:0}
+.rot.visible{opacity:1}
+.rot.amo{font-style:italic;font-size:1.9rem;color:var(--rosa-texto)}
+.fade{opacity:0;animation:fade 1.4s ease forwards}
+@keyframes fade{to{opacity:1}}
+
+.garden{position:fixed;left:0;bottom:0;width:100%;height:38vh;z-index:1;pointer-events:none}
+.esquina{position:fixed;top:0;width:min(46vw,260px);z-index:1;pointer-events:none}
+.esquina.izq{left:0}
+.esquina.der{right:0;transform:scaleX(-1)}
+
+.bloom{transform-box:fill-box;transform-origin:center;transform:scale(0) rotate(-40deg);animation:bloom 1.4s cubic-bezier(.2,.9,.3,1.15) forwards;animation-delay:var(--d)}
+@keyframes bloom{to{transform:scale(1) rotate(0)}}
+.stem{stroke-dasharray:1;stroke-dashoffset:1;animation:grow 1.6s ease forwards;animation-delay:var(--d)}
+@keyframes grow{to{stroke-dashoffset:0}}
+.leaf{transform-box:fill-box;transform-origin:center;transform:scale(0);animation:leaf .8s ease forwards;animation-delay:var(--d)}
+@keyframes leaf{to{transform:scale(1)}}
+
+.petalo{position:fixed;top:-30px;width:12px;height:17px;background:var(--rosa);border-radius:100% 0 100% 0;opacity:.8;z-index:0;pointer-events:none;animation:caer linear infinite}
+@keyframes caer{to{transform:translate3d(var(--dx),110svh,0) rotate(var(--rot))}}
+
+@media (prefers-reduced-motion:reduce){
+  .bloom,.leaf{animation:none;transform:none}
+  .stem{animation:none;stroke-dashoffset:0}
+  .fade{animation:none;opacity:1}
+  .petalo{display:none}
+  .rot{transition:none}
+}
+</style>
+</head>
+<body>
+
+<main>
+  <p class="sup fade" style="animation-delay:1.6s">Feliz día,</p>
+  <h1 class="fade" style="animation-delay:2s">mamá</h1>
+  <p id="texto" class="rot" aria-live="polite"></p>
+</main>
+
+<svg class="esquina izq" id="cIzq" viewBox="0 0 260 260" aria-hidden="true"></svg>
+<svg class="esquina der" id="cDer" viewBox="0 0 260 260" aria-hidden="true"></svg>
+<svg class="garden" id="garden" viewBox="0 0 1200 330" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+// paletas: [pétalo, borde, centro]
+const PAL = [
+  ['#fbd5e0', '#f2a2bc', '#ffe3a8'],
+  ['#fff1f5', '#f7b6cb', '#f6cf7a'],
+  ['#ffc9d9', '#ee8aab', '#fff3c4'],
+  ['#ffffff', '#f5b9cc', '#f9d58a']
+];
+let s = 11;
+const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+
+function flor(parent, x, y, r, n, p, delay) {
+  const g = el('g', { class: 'bloom', style: `--d:${delay}s` }, parent);
+  for (let i = 0; i < n; i++) {
+    el('ellipse', {
+      cx: x, cy: y - r * 0.52, rx: r * 0.3, ry: r * 0.52,
+      fill: PAL[p][0], stroke: PAL[p][1], 'stroke-width': 1,
+      transform: `rotate(${(360 / n) * i} ${x} ${y})`
+    }, g);
+  }
+  el('circle', { cx: x, cy: y, r: r * 0.22, fill: PAL[p][2] }, g);
+}
+function hoja(parent, x, y, rot, size, delay) {
+  el('ellipse', {
+    class: 'leaf', cx: x, cy: y, rx: size * 0.45, ry: size,
+    fill: '#cfe8cf', stroke: '#a9d1ad', 'stroke-width': 1,
+    transform: `rotate(${rot} ${x} ${y})`, style: `--d:${delay}s`
+  }, parent);
+}
+
+/* jardín de abajo */
+const garden = document.getElementById('garden');
+const xs = [];
+for (let x = 30; x < 1200; x += 85 + rnd() * 30) xs.push(x);
+xs.forEach((x, i) => {
+  const y = 70 + rnd() * 110;
+  const r = 34 + rnd() * 26;
+  const d = 0.2 + i * 0.12;
+  const bend = (rnd() - 0.5) * 60;
+  el('path', {
+    class: 'stem', d: `M ${x} 330 Q ${x + bend} ${(330 + y) / 2} ${x} ${y}`,
+    pathLength: 1, fill: 'none', stroke: '#b9dcb8', 'stroke-width': 3.5, 'stroke-linecap': 'round', style: `--d:${d}s`
+  }, garden);
+  const my = (330 + y) / 2;
+  hoja(garden, x + bend * 0.5 - 14, my + 10, -50, 20, d + 1);
+  hoja(garden, x + bend * 0.5 + 14, my + 40, 50, 18, d + 1.1);
+  flor(garden, x, y, r, 6 + Math.floor(rnd() * 4), Math.floor(rnd() * PAL.length), d + 1);
+});
+
+/* esquinas de arriba */
+const cluster = [[70, 70, 56, 8, 0], [165, 38, 36, 7, 2], [40, 168, 34, 6, 1], [150, 130, 26, 6, 3], [215, 95, 22, 5, 0]];
+['cIzq', 'cDer'].forEach((id, k) => {
+  const svg = document.getElementById(id);
+  hoja(svg, 110, 105, 40, 24, 0.6);
+  hoja(svg, 95, 130, -30, 20, 0.7);
+  cluster.forEach((c, i) => flor(svg, c[0], c[1], c[2], c[3], c[4], 0.3 + i * 0.25 + k * 0.1));
+});
+
+/* pétalos cayendo despacio */
+for (let i = 0; i < 14; i++) {
+  const p = document.createElement('i');
+  p.className = 'petalo';
+  p.style.left = Math.random() * 100 + '%';
+  p.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px');
+  p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+  p.style.animationDuration = (12 + Math.random() * 10) + 's';
+  p.style.animationDelay = (3 + Math.random() * 12) + 's';
+  document.body.appendChild(p);
+}
+
+/* texto que se va actualizando */
+const MENSAJES = [
+  "Gracias por cuidarme, por aguantarme y por estar siempre.",
+  "Todo lo lindo que tengo tiene algo tuyo.",
+  "Te amo mucho.",
+  "Tu casa es el lugar donde mejor me siento en el mundo.",
+  "Te amo mucho, mamá.",
+  "Gracias por creer en mí, incluso cuando yo no lo hacía.",
+  "Nadie me abraza como vos.",
+  "Te amo más de lo que te digo.",
+  "Gracias por enseñarme con el ejemplo.",
+  "Sos mi persona favorita.",
+  "Estoy orgulloso de ser tu hijo.",
+  "Todo lo que soy es gracias a vos.",
+  "Te amo mucho. Hoy y todos los días.",
+  "Quiero que sepas que todo lo que hiciste por mí lo vi, y te lo agradezco. Las comidas, los consejos y los abrazos me ayudaron a ser como soy.",
+  "A veces no te lo digo, pero pienso en todo lo que dejaste de lado para que a mí no me faltara nada. Gracias por eso, mamá. Nunca me voy a olvidar.",
+  "Siempre pensé que eras invencible. Ahora sé que no es que no te cansaras, sino que seguías igual por mí. Eso me parece admirable.",
+  "No hay regalo que alcance para agradecerte todo. Por eso hice esta página: para que cada vez que quieras te acuerdes de lo mucho que te quiero.",
+  "Gracias por las veces que me escuchaste sin juzgarme, por tus consejos aunque a veces no los seguí, y por no soltarme nunca la mano cuando más lo necesité.",
+  "Hay cosas que solo una mamá sabe hacer: saber que algo me pasa antes de que yo lo diga, y encontrar las palabras justas cuando yo no las tengo. Vos lo hacés todos los días.",
+  "Quiero que sepas que cada vez que logro algo, una parte es tuya. Tus esfuerzos, tu paciencia y tu cariño están en cada cosa buena que me pasa.",
+  "Sé que no siempre fui fácil, y aun así nunca dejaste de cuidarme ni de quererme. Eso es amor del bueno, del que no se mide, y yo lo valoro muchísimo.",
+  "Quiero que cuando te sientas cansada te acuerdes de que sos el pilar de nuestra casa. Gracias por sostenerlo todo con tanta fuerza y tanto cariño.",
+  "Ojalá algún día pueda devolverte aunque sea una parte de todo lo que me diste. Mientras tanto, voy a seguir cuidándote y queriéndote como te merecés.",
+  "Si pudiera elegir de nuevo a mi mamá entre todas las del mundo, te elegiría a vos mil veces. Te amo mucho."
+];
+/* intercala cortos y largos para que los largos salgan enseguida */
+const cortos = MENSAJES.filter(t => t.length < 60);
+const largos = MENSAJES.filter(t => t.length >= 60);
+const ORDEN = [];
+for (let i = 0; i < Math.max(cortos.length, largos.length); i++) {
+  if (cortos[i]) ORDEN.push(cortos[i]);
+  if (largos[i]) ORDEN.push(largos[i]);
+}
+const texto = document.getElementById('texto');
+let m = 0;
+function siguiente() {
+  texto.classList.remove('visible');
+  setTimeout(() => {
+    const t = ORDEN[m % ORDEN.length];
+    texto.textContent = t;
+    texto.classList.toggle('amo', t.startsWith('Te amo') && t.length < 40);
+    texto.classList.add('visible');
+    m++;
+    setTimeout(siguiente, 3500 + t.length * 60);
+  }, 1300);
+}
+setTimeout(siguiente, 2300);
+</script>
+</body>
+</html>
